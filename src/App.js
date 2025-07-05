@@ -6,6 +6,120 @@ const App = () => {
   const [isChiming, setIsChiming] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [lastChimeTime, setLastChimeTime] = useState(null);
+  const [ambientAudio, setAmbientAudio] = useState(null);
+  const [audioInitialized, setAudioInitialized] = useState(false);
+
+  // Get background style based on time of day
+  const getTimeBasedBackground = () => {
+    const hour = currentTime.getHours();
+    
+    if (hour >= 4 && hour < 7) {
+      // Dawn: Soft golden sunrise
+      return {
+        background: 'linear-gradient(135deg, #ffd89b 0%, #19547b 40%, #2d3436 100%)',
+        backgroundImage: `
+          radial-gradient(circle at 20% 20%, rgba(255, 216, 155, 0.3) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(253, 203, 110, 0.2) 0%, transparent 50%),
+          url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='9' cy='9' r='1'/%3E%3Ccircle cx='49' cy='49' r='1'/%3E%3Ccircle cx='29' cy='19' r='1'/%3E%3Ccircle cx='39' cy='39' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+      };
+    } else if (hour >= 7 && hour < 12) {
+      // Morning: Fresh blue sky
+      return {
+        background: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 60%, #00b894 100%)',
+        backgroundImage: `
+          radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
+          radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+          url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Cpath d='M20 20c4 0 8-4 12-4s8 4 12 4 8-4 12-4 8 4 12 4V0H20v20zm0 20c4 0 8-4 12-4s8 4 12 4 8-4 12-4 8 4 12 4V20H20v20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+      };
+    } else if (hour >= 12 && hour < 18) {
+      // Afternoon: Bright and clear
+      return {
+        background: 'linear-gradient(135deg, #a8e6cf 0%, #74b9ff 50%, #0984e3 100%)',
+        backgroundImage: `
+          radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.5) 0%, transparent 30%),
+          radial-gradient(circle at 75% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
+          radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 35%),
+          url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M50 50c8 0 16-8 24-8s16 8 24 8 16-8 24-8v-8c-8 0-16 8-24 8s-16-8-24-8-16 8-24 8-16-8-24-8v8c8 0 16 8 24 8z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+      };
+    } else if (hour >= 18 && hour < 21) {
+      // Evening: Warm sunset
+      return {
+        background: 'linear-gradient(135deg, #fd79a8 0%, #fdcb6e 30%, #e17055 60%, #6c5ce7 100%)',
+        backgroundImage: `
+          radial-gradient(circle at 20% 60%, rgba(255, 121, 168, 0.3) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(253, 203, 110, 0.4) 0%, transparent 60%),
+          url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Ccircle cx='15' cy='15' r='2'/%3E%3Ccircle cx='45' cy='45' r='1'/%3E%3Ccircle cx='35' cy='15' r='1'/%3E%3Ccircle cx='15' cy='35' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+      };
+    } else {
+      // Night: Deep and starry
+      return {
+        background: 'linear-gradient(135deg, #2d3436 0%, #00b894 30%, #00396f 60%, #0c0c54 100%)',
+        backgroundImage: `
+          radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 30%),
+          radial-gradient(circle at 60% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 25%),
+          radial-gradient(circle at 80% 60%, rgba(255, 255, 255, 0.06) 0%, transparent 20%),
+          radial-gradient(circle at 30% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 25%),
+          url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.2'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3Ccircle cx='80' cy='30' r='1'/%3E%3Ccircle cx='30' cy='60' r='1'/%3E%3Ccircle cx='70' cy='80' r='1'/%3E%3Ccircle cx='50' cy='15' r='0.5'/%3E%3Ccircle cx='90' cy='70' r='0.5'/%3E%3Ccircle cx='15' cy='85' r='0.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+      };
+    }
+  };
+
+  // Initialize ambient audio
+  const initializeAmbientAudio = useCallback(() => {
+    if (!audioInitialized && soundEnabled) {
+      try {
+        const audio = new Audio('/assets/sounds/ambient-background.mp3');
+        audio.loop = true;
+        audio.volume = 0.3; // Subtle background volume
+        audio.preload = 'auto';
+        
+        // Handle audio loading
+        audio.addEventListener('canplaythrough', () => {
+          setAmbientAudio(audio);
+          setAudioInitialized(true);
+          
+          // Start playing ambient audio
+          audio.play().catch(error => {
+            console.log('Ambient audio autoplay prevented:', error);
+          });
+        });
+        
+        audio.addEventListener('error', () => {
+          console.log('Ambient audio file not found, continuing without background audio');
+          setAudioInitialized(true);
+        });
+        
+      } catch (error) {
+        console.log('Error initializing ambient audio:', error);
+        setAudioInitialized(true);
+      }
+    }
+  }, [audioInitialized, soundEnabled]);
+
+  // Start ambient audio
+  const startAmbientAudio = useCallback(() => {
+    if (ambientAudio && soundEnabled && !isChiming) {
+      ambientAudio.play().catch(error => {
+        console.log('Could not start ambient audio:', error);
+      });
+    }
+  }, [ambientAudio, soundEnabled, isChiming]);
+
+  // Stop ambient audio
+  const stopAmbientAudio = useCallback(() => {
+    if (ambientAudio) {
+      ambientAudio.pause();
+    }
+  }, [ambientAudio]);
+
+  // Handle user interaction to enable audio
+  const handleUserInteraction = useCallback(() => {
+    if (!audioInitialized) {
+      initializeAmbientAudio();
+    } else if (ambientAudio && soundEnabled && !isChiming) {
+      startAmbientAudio();
+    }
+  }, [audioInitialized, initializeAmbientAudio, ambientAudio, soundEnabled, isChiming, startAmbientAudio]);
 
   // Simple Web Audio API chime (no external dependencies)
   const playSimpleChime = useCallback(() => {
@@ -41,6 +155,9 @@ const App = () => {
   const triggerChime = useCallback(async () => {
     setIsChiming(true);
     
+    // Stop ambient audio during chime
+    stopAmbientAudio();
+    
     if (soundEnabled) {
       try {
         // Try to play audio file first
@@ -59,11 +176,26 @@ const App = () => {
       }
     }
 
-    // Stop chiming animation after 6 seconds
+    // Stop chiming animation and resume ambient audio after 6 seconds
     setTimeout(() => {
       setIsChiming(false);
+      // Resume ambient audio after chime ends
+      setTimeout(() => {
+        if (soundEnabled) {
+          startAmbientAudio();
+        }
+      }, 1000); // Brief pause before resuming ambient
     }, 6000);
-  }, [soundEnabled, playSimpleChime]);
+  }, [soundEnabled, playSimpleChime, stopAmbientAudio, startAmbientAudio]);
+
+  // Handle sound enabled/disabled changes
+  useEffect(() => {
+    if (soundEnabled && ambientAudio && !isChiming) {
+      startAmbientAudio();
+    } else if (!soundEnabled && ambientAudio) {
+      stopAmbientAudio();
+    }
+  }, [soundEnabled, ambientAudio, isChiming, startAmbientAudio, stopAmbientAudio]);
 
   // Update time every second
   useEffect(() => {
@@ -71,9 +203,7 @@ const App = () => {
       setCurrentTime(new Date());
     }, 1000);
 
-    return (
-    <div className="min-h-screen flex items-center justify-center p-4 transition-all duration-1000" 
-         style={getTimeBasedBackground()}>) => clearInterval(timer);
+    return () => clearInterval(timer);
   }, []);
 
   // Check for chime times (6am, noon, and midnight)
@@ -141,60 +271,11 @@ const App = () => {
     return `${hoursLeft}h ${minutesLeft}m`;
   };
 
-  // Get background style based on time of day
-  const getTimeBasedBackground = () => {
-    const hour = currentTime.getHours();
-    
-    if (hour >= 4 && hour < 7) {
-      // Dawn: Soft golden sunrise
-      return {
-        background: 'linear-gradient(135deg, #ffd89b 0%, #19547b 40%, #2d3436 100%)',
-        backgroundImage: `
-          radial-gradient(circle at 20% 20%, rgba(255, 216, 155, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 80%, rgba(253, 203, 110, 0.2) 0%, transparent 50%),
-          url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='9' cy='9' r='1'/%3E%3Ccircle cx='49' cy='49' r='1'/%3E%3Ccircle cx='29' cy='19' r='1'/%3E%3Ccircle cx='39' cy='39' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-      };
-    } else if (hour >= 7 && hour < 12) {
-      // Morning: Fresh blue sky
-      return {
-        background: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 60%, #00b894 100%)',
-        backgroundImage: `
-          radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
-          radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
-          url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Cpath d='M20 20c4 0 8-4 12-4s8 4 12 4 8-4 12-4 8 4 12 4V0H20v20zm0 20c4 0 8-4 12-4s8 4 12 4 8-4 12-4 8 4 12 4V20H20v20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-      };
-    } else if (hour >= 12 && hour < 18) {
-      // Afternoon: Bright and clear
-      return {
-        background: 'linear-gradient(135deg, #a8e6cf 0%, #74b9ff 50%, #0984e3 100%)',
-        backgroundImage: `
-          radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.5) 0%, transparent 30%),
-          radial-gradient(circle at 75% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
-          radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 35%),
-          url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M50 50c8 0 16-8 24-8s16 8 24 8 16-8 24-8v-8c-8 0-16 8-24 8s-16-8-24-8-16 8-24 8-16-8-24-8v8c8 0 16 8 24 8z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-      };
-    } else if (hour >= 18 && hour < 21) {
-      // Evening: Warm sunset
-      return {
-        background: 'linear-gradient(135deg, #fd79a8 0%, #fdcb6e 30%, #e17055 60%, #6c5ce7 100%)',
-        backgroundImage: `
-          radial-gradient(circle at 20% 60%, rgba(255, 121, 168, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(253, 203, 110, 0.4) 0%, transparent 60%),
-          url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Ccircle cx='15' cy='15' r='2'/%3E%3Ccircle cx='45' cy='45' r='1'/%3E%3Ccircle cx='35' cy='15' r='1'/%3E%3Ccircle cx='15' cy='35' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-      };
-    } else {
-      // Night: Deep and starry
-      return {
-        background: 'linear-gradient(135deg, #2d3436 0%, #00b894 30%, #00396f 60%, #0c0c54 100%)',
-        backgroundImage: `
-          radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 30%),
-          radial-gradient(circle at 60% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 25%),
-          radial-gradient(circle at 80% 60%, rgba(255, 255, 255, 0.06) 0%, transparent 20%),
-          radial-gradient(circle at 30% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 25%),
-          url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.2'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3Ccircle cx='80' cy='30' r='1'/%3E%3Ccircle cx='30' cy='60' r='1'/%3E%3Ccircle cx='70' cy='80' r='1'/%3E%3Ccircle cx='50' cy='15' r='0.5'/%3E%3Ccircle cx='90' cy='70' r='0.5'/%3E%3Ccircle cx='15' cy='85' r='0.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-      };
-    }
-  };
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 transition-all duration-1000" 
+         style={getTimeBasedBackground()}
+         onClick={handleUserInteraction}>
+
       <div className="relative bg-gradient-to-b from-amber-50 to-cream-100 rounded-3xl p-8 shadow-2xl border-4 border-yellow-600 max-w-md w-full backdrop-blur-sm"
            style={{
              background: 'linear-gradient(145deg, rgba(254, 252, 232, 0.95), rgba(254, 243, 199, 0.95), rgba(254, 215, 170, 0.95))',
@@ -265,7 +346,7 @@ const App = () => {
         </div>
 
         {/* Elegant Controls */}
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 mb-4">
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
             className={`flex items-center gap-2 px-5 py-3 rounded-xl font-serif transition-all duration-300 border-2 shadow-md ${
@@ -289,7 +370,21 @@ const App = () => {
           </button>
         </div>
 
-
+        {/* Ambient Audio Status */}
+        {soundEnabled && (
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
+              <div className={`w-2 h-2 rounded-full ${ambientAudio && !isChiming ? 'bg-green-400 animate-pulse' : 'bg-gray-300'}`}></div>
+              <span className="text-xs font-serif">
+                {!audioInitialized 
+                  ? 'Click anywhere to enable ambient sounds' 
+                  : ambientAudio && !isChiming 
+                    ? 'Hotel ambience playing softly' 
+                    : 'Ambient sounds ready'}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Signature flourish */}
         <div className="mt-4 text-center">
