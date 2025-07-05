@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, BellRing, Volume2, VolumeX, Crown } from 'lucide-react';
-import * as Tone from 'tone';
 
 const App = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -35,65 +34,52 @@ const App = () => {
     }
   }, [currentTime, lastChimeTime]);
 
+  // Simple Web Audio API chime (no external dependencies)
+  const playSimpleChime = () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Westminster chimes frequencies
+      const notes = [659.25, 523.25, 587.33, 392.00]; // E5, C5, D5, G4
+      
+      notes.forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+        oscillator.type = 'triangle';
+        
+        // Envelope for bell-like sound
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.3, audioContext.currentTime + 0.1 + index * 0.8);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 2 + index * 0.8);
+        
+        oscillator.start(audioContext.currentTime + index * 0.8);
+        oscillator.stop(audioContext.currentTime + 2 + index * 0.8);
+      });
+    } catch (error) {
+      console.log('Audio playback failed:', error);
+    }
+  };
+
   const triggerChime = async () => {
     setIsChiming(true);
     
     if (soundEnabled) {
       try {
-        // Method 1: Using an audio file (for real implementation)
-        // Replace 'grandfather-clock-chime.mp3' with your actual audio file path
+        // Try to play audio file first
         const audio = new Audio('/assets/sounds/grandfather-clock-chime.mp3');
         audio.volume = 0.7;
         
-        // Try to play the audio file first
         try {
           await audio.play();
         } catch (audioError) {
-          // If audio file fails, fall back to synthesized version
-          console.log('Audio file not found, using synthesized chimes');
-          
-          // Fallback: Create a deep, resonant grandfather clock chime
-          if (Tone.context.state !== 'running') {
-            await Tone.start();
-          }
-
-          const synth = new Tone.Synth({
-            oscillator: {
-              type: 'triangle'
-            },
-            envelope: {
-              attack: 0.2,
-              decay: 0.8,
-              sustain: 0.4,
-              release: 4
-            }
-          }).toDestination();
-
-          // Add reverb for cathedral-like resonance
-          const reverb = new Tone.Reverb({
-            decay: 6,
-            wet: 0.4
-          }).toDestination();
-          
-          synth.connect(reverb);
-
-          // Westminster chimes pattern - classic grandfather clock
-          const chimeSequence = [
-            { note: 'E4', time: 0 },
-            { note: 'C4', time: 0.8 },
-            { note: 'D4', time: 1.6 },
-            { note: 'G3', time: 2.4 }
-          ];
-
-          chimeSequence.forEach(({ note, time }) => {
-            synth.triggerAttackRelease(note, '1.5', `+${time}`);
-          });
-
-          // Clean up after chimes finish
-          setTimeout(() => {
-            synth.dispose();
-            reverb.dispose();
-          }, 8000);
+          // If audio file fails, use simple Web Audio API
+          console.log('Audio file not found, using simple chimes');
+          playSimpleChime();
         }
       } catch (error) {
         console.log('Audio playback failed:', error);
@@ -277,7 +263,7 @@ const App = () => {
             </p>
             <p className="flex items-center justify-center gap-2 text-amber-600">
               <span className="text-yellow-600">🎵</span>
-              <span>Will use audio file if available, otherwise synthesized chimes</span>
+              <span>Will use audio file if available, otherwise built-in chimes</span>
             </p>
           </div>
         </div>
