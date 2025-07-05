@@ -57,6 +57,21 @@ const App = () => {
     }
   };
 
+  // Calculate hand angles based on current time
+  const getHandAngles = () => {
+    const hours = currentTime.getHours() % 12;
+    const minutes = currentTime.getMinutes();
+    const seconds = currentTime.getSeconds();
+    
+    return {
+      hour: (hours * 30) + (minutes * 0.5), // 30 degrees per hour + minute adjustment
+      minute: minutes * 6, // 6 degrees per minute
+      second: seconds * 6  // 6 degrees per second
+    };
+  };
+
+  const { hour: hourAngle, minute: minuteAngle, second: secondAngle } = getHandAngles();
+
   // Initialize ambient audio
   const initializeAmbientAudio = useCallback(() => {
     if (!audioInitialized && soundEnabled) {
@@ -148,8 +163,11 @@ const App = () => {
   const triggerChime = useCallback(async () => {
     setIsChiming(true);
     
-    // Stop ambient audio during chime
-    stopAmbientAudio();
+    // Immediately stop ambient audio during chime with fade out
+    if (ambientAudio) {
+      ambientAudio.pause();
+      ambientAudio.currentTime = 0; // Reset to beginning for next play
+    }
     
     if (soundEnabled) {
       try {
@@ -172,18 +190,22 @@ const App = () => {
     // Stop chiming animation and resume ambient audio after 6 seconds
     setTimeout(() => {
       setIsChiming(false);
-      // Resume ambient audio after chime ends
+      // Resume ambient audio after chime ends with a gentle delay
       setTimeout(() => {
-        if (soundEnabled) {
+        if (soundEnabled && ambientAudio) {
+          ambientAudio.volume = 0.3; // Reset volume
           startAmbientAudio();
         }
-      }, 1000); // Brief pause before resuming ambient
+      }, 1500); // Longer pause before resuming ambient for clear separation
     }, 6000);
-  }, [soundEnabled, playSimpleChime, stopAmbientAudio, startAmbientAudio]);
+  }, [soundEnabled, playSimpleChime, ambientAudio, startAmbientAudio]);
 
-  // Handle sound enabled/disabled changes
+  // Handle sound enabled/disabled changes and chiming state
   useEffect(() => {
-    if (soundEnabled && ambientAudio && !isChiming) {
+    if (isChiming && ambientAudio) {
+      // Ensure ambient audio is stopped during chiming
+      ambientAudio.pause();
+    } else if (soundEnabled && ambientAudio && !isChiming) {
       startAmbientAudio();
     } else if (!soundEnabled && ambientAudio) {
       stopAmbientAudio();
@@ -216,24 +238,6 @@ const App = () => {
       }
     }
   }, [currentTime, lastChimeTime, triggerChime]);
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour12: true,
-      hour: 'numeric',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
   const isChimeTime = () => {
     const hours = currentTime.getHours();
@@ -269,41 +273,164 @@ const App = () => {
          style={getTimeBasedBackground()}
          onClick={handleUserInteraction}>
 
-      <div className="relative bg-gradient-to-b from-amber-50 to-cream-100 rounded-3xl p-8 shadow-2xl border-4 border-yellow-600 max-w-md w-full backdrop-blur-sm"
+      <div className="relative bg-gradient-to-b from-amber-50 to-cream-100 p-8 shadow-2xl border-4 border-yellow-600 max-w-md w-full backdrop-blur-sm"
            style={{
              background: 'linear-gradient(145deg, rgba(254, 252, 232, 0.95), rgba(254, 243, 199, 0.95), rgba(254, 215, 170, 0.95))',
+             borderRadius: '20px 20px 40px 40px',
+             clipPath: 'polygon(10% 0%, 90% 0%, 100% 15%, 100% 85%, 90% 100%, 10% 100%, 0% 85%, 0% 15%)',
              boxShadow: `
                0 25px 50px -12px rgba(0, 0, 0, 0.4),
-               inset 0 1px 0 rgba(255, 255, 255, 0.6),
-               0 0 0 1px rgba(184, 134, 11, 0.3)
+               inset 0 2px 4px rgba(255, 255, 255, 0.6),
+               0 0 0 2px rgba(184, 134, 11, 0.3),
+               inset 0 -4px 8px rgba(0, 0, 0, 0.1)
              `
            }}>
         
-        {/* Ornate corner decorations */}
-        <div className="absolute top-2 left-2 w-8 h-8 border-l-4 border-t-4 border-yellow-600 opacity-40"></div>
-        <div className="absolute top-2 right-2 w-8 h-8 border-r-4 border-t-4 border-yellow-600 opacity-40"></div>
-        <div className="absolute bottom-2 left-2 w-8 h-8 border-l-4 border-b-4 border-yellow-600 opacity-40"></div>
-        <div className="absolute bottom-2 right-2 w-8 h-8 border-r-4 border-b-4 border-yellow-600 opacity-40"></div>
+        {/* Ornate decorative elements for mantel clock */}
+        <div className="absolute top-4 left-4 w-6 h-6 border-l-3 border-t-3 border-yellow-700 opacity-60 rounded-tl-lg"></div>
+        <div className="absolute top-4 right-4 w-6 h-6 border-r-3 border-t-3 border-yellow-700 opacity-60 rounded-tr-lg"></div>
+        <div className="absolute bottom-6 left-6 w-8 h-8 border-l-4 border-b-4 border-yellow-600 opacity-40 rounded-bl-xl"></div>
+        <div className="absolute bottom-6 right-6 w-8 h-8 border-r-4 border-b-4 border-yellow-600 opacity-40 rounded-br-xl"></div>
+        
+        {/* Mantel clock feet */}
+        <div className="absolute bottom-0 left-8 w-4 h-3 bg-yellow-700 rounded-t-lg opacity-70"></div>
+        <div className="absolute bottom-0 right-8 w-4 h-3 bg-yellow-700 rounded-t-lg opacity-70"></div>
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-3 bg-yellow-700 rounded-t-lg opacity-70"></div>
 
         {/* Header with aristocratic styling */}
-        <div className="text-center mb-8 relative">
-          <Crown className="w-8 h-8 text-yellow-700 mx-auto mb-3" />
-          <h1 className="text-2xl font-serif font-bold text-amber-900 mb-2 tracking-wide">
+        <div className="text-center mb-6 relative">
+          <Crown className="w-6 h-6 text-yellow-700 mx-auto mb-2" />
+          <h1 className="text-xl font-serif font-bold text-amber-900 mb-1 tracking-wide">
             The Count's Timepiece
           </h1>
-          <div className="h-px bg-gradient-to-r from-transparent via-yellow-600 to-transparent mb-2"></div>
-          <p className="text-amber-700 text-sm italic font-serif">
-            "Time marks the rhythm of a gentleman's day" — Hotel Metropol
+          <div className="h-px bg-gradient-to-r from-transparent via-yellow-600 to-transparent mb-1"></div>
+          <p className="text-amber-700 text-xs italic font-serif">
+            "Time marks the rhythm of a gentleman's day"
           </p>
         </div>
 
-        {/* Main Clock Display with Roman numerals inspiration */}
+        {/* Main Analog Clock Display */}
         <div className="text-center mb-8 relative">
-          <div className="text-5xl font-serif font-bold text-amber-900 mb-2 tracking-wider drop-shadow-sm">
-            {formatTime(currentTime)}
+          {/* Digital time display (smaller, below clock) */}
+          <div className="text-lg font-serif text-amber-800 mb-4">
+            {currentTime.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
           </div>
-          <div className="text-amber-800 text-lg font-serif">
-            {formatDate(currentTime)}
+          
+          {/* Analog Clock Face */}
+          <div className="relative mx-auto w-64 h-64 mb-4">
+            {/* Clock Face Background */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-50 to-amber-100 border-8 border-yellow-700 shadow-2xl"
+                 style={{
+                   background: 'radial-gradient(circle at 30% 30%, #fefce8, #fef3c7, #fed7aa)',
+                   boxShadow: `
+                     inset 0 4px 8px rgba(0, 0, 0, 0.1),
+                     inset 0 -2px 4px rgba(255, 255, 255, 0.8),
+                     0 8px 32px rgba(0, 0, 0, 0.3)
+                   `
+                 }}>
+              
+              {/* Hour Markers */}
+              {[...Array(12)].map((_, i) => {
+                const angle = i * 30;
+                const isMainHour = i % 3 === 0;
+                return (
+                  <div
+                    key={i}
+                    className="absolute w-1 bg-amber-900"
+                    style={{
+                      height: isMainHour ? '24px' : '16px',
+                      left: '50%',
+                      top: isMainHour ? '8px' : '12px',
+                      transformOrigin: '50% 120px',
+                      transform: `translateX(-50%) rotate(${angle}deg)`
+                    }}
+                  />
+                );
+              })}
+              
+              {/* Roman Numerals */}
+              {['XII', 'III', 'VI', 'IX'].map((numeral, i) => {
+                const positions = [
+                  { top: '16px', left: '50%', transform: 'translateX(-50%)' }, // XII
+                  { top: '50%', right: '16px', transform: 'translateY(-50%)' }, // III
+                  { bottom: '16px', left: '50%', transform: 'translateX(-50%)' }, // VI
+                  { top: '50%', left: '16px', transform: 'translateY(-50%)' }  // IX
+                ];
+                return (
+                  <div
+                    key={i}
+                    className="absolute text-xl font-bold text-amber-900 font-serif"
+                    style={positions[i]}
+                  >
+                    {numeral}
+                  </div>
+                );
+              })}
+              
+              {/* Clock Hands */}
+              {/* Hour Hand */}
+              <div
+                className="absolute bg-amber-900 rounded-full origin-bottom"
+                style={{
+                  width: '6px',
+                  height: '70px',
+                  left: '50%',
+                  bottom: '50%',
+                  transformOrigin: '50% 100%',
+                  transform: `translateX(-50%) rotate(${hourAngle}deg)`,
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                }}
+              />
+              
+              {/* Minute Hand */}
+              <div
+                className="absolute bg-amber-800 rounded-full origin-bottom"
+                style={{
+                  width: '4px',
+                  height: '90px',
+                  left: '50%',
+                  bottom: '50%',
+                  transformOrigin: '50% 100%',
+                  transform: `translateX(-50%) rotate(${minuteAngle}deg)`,
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                }}
+              />
+              
+              {/* Second Hand */}
+              <div
+                className="absolute bg-red-600 rounded-full origin-bottom transition-transform duration-75"
+                style={{
+                  width: '2px',
+                  height: '100px',
+                  left: '50%',
+                  bottom: '50%',
+                  transformOrigin: '50% 100%',
+                  transform: `translateX(-50%) rotate(${secondAngle}deg)`,
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
+                }}
+              />
+              
+              {/* Center Hub */}
+              <div className="absolute w-4 h-4 bg-yellow-700 rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border-2 border-amber-900"
+                   style={{
+                     boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3)'
+                   }}
+              />
+            </div>
+          </div>
+          
+          {/* Digital Time (small, for reference) */}
+          <div className="text-sm font-serif text-amber-700 opacity-75">
+            {currentTime.toLocaleTimeString('en-US', {
+              hour12: true,
+              hour: 'numeric',
+              minute: '2-digit'
+            })}
           </div>
           
           {/* Decorative line */}
@@ -367,11 +494,13 @@ const App = () => {
         {soundEnabled && (
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
-              <div className={`w-2 h-2 rounded-full ${ambientAudio && !isChiming ? 'bg-green-400 animate-pulse' : 'bg-gray-300'}`}></div>
+              <div className={`w-2 h-2 rounded-full ${ambientAudio && !isChiming && !ambientAudio.paused ? 'bg-green-400 animate-pulse' : 'bg-gray-300'}`}></div>
               <span className="text-xs font-serif">
                 {!audioInitialized 
                   ? 'Click anywhere to enable ambient sounds' 
-                  : ambientAudio && !isChiming 
+                  : isChiming
+                    ? 'Ambient paused during chimes'
+                  : ambientAudio && !ambientAudio.paused
                     ? 'Hotel ambience playing softly' 
                     : 'Ambient sounds ready'}
               </span>
