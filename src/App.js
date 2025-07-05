@@ -9,57 +9,50 @@ const App = () => {
   const [ambientAudio, setAmbientAudio] = useState(null);
   const [audioInitialized, setAudioInitialized] = useState(false);
 
-  // Get background style based on time of day
+  // Get background style based on time of day - Option 1: Subtle & Elegant
   const getTimeBasedBackground = () => {
     const hour = currentTime.getHours();
     
     if (hour >= 4 && hour < 7) {
-      // Dawn: Soft golden sunrise
+      // Dawn: Soft champagne and pearl tones
       return {
-        background: 'linear-gradient(135deg, #ffd89b 0%, #19547b 40%, #2d3436 100%)',
+        background: 'linear-gradient(135deg, #f7f1e3 0%, #e8dcc0 30%, #d4c4a8 60%, #b8a082 100%)',
         backgroundImage: `
-          radial-gradient(circle at 20% 20%, rgba(255, 216, 155, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 80%, rgba(253, 203, 110, 0.2) 0%, transparent 50%),
-          url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='9' cy='9' r='1'/%3E%3Ccircle cx='49' cy='49' r='1'/%3E%3Ccircle cx='29' cy='19' r='1'/%3E%3Ccircle cx='39' cy='39' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          radial-gradient(circle at 25% 25%, rgba(255, 245, 220, 0.3) 0%, transparent 60%),
+          radial-gradient(circle at 75% 75%, rgba(245, 222, 179, 0.2) 0%, transparent 50%)`
       };
     } else if (hour >= 7 && hour < 12) {
-      // Morning: Fresh blue sky
+      // Morning: Fresh cream and soft blue
       return {
-        background: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 60%, #00b894 100%)',
+        background: 'linear-gradient(135deg, #f0f4f8 0%, #e6f3ff 40%, #d1ecf1 70%, #b8dbd9 100%)',
         backgroundImage: `
-          radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
-          radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
-          url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Cpath d='M20 20c4 0 8-4 12-4s8 4 12 4 8-4 12-4 8 4 12 4V0H20v20zm0 20c4 0 8-4 12-4s8 4 12 4 8-4 12-4 8 4 12 4V20H20v20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(230, 243, 255, 0.3) 0%, transparent 60%)`
       };
     } else if (hour >= 12 && hour < 18) {
-      // Afternoon: Bright and clear
+      // Afternoon: Warm ivory and pale gold
       return {
-        background: 'linear-gradient(135deg, #a8e6cf 0%, #74b9ff 50%, #0984e3 100%)',
+        background: 'linear-gradient(135deg, #faf7f2 0%, #f5f0e8 30%, #ede4d3 60%, #e0d3bb 100%)',
         backgroundImage: `
-          radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.5) 0%, transparent 30%),
-          radial-gradient(circle at 75% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
-          radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 35%),
-          url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M50 50c8 0 16-8 24-8s16 8 24 8 16-8 24-8v-8c-8 0-16 8-24 8s-16-8-24-8-16 8-24 8-16-8-24-8v8c8 0 16 8 24 8z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          radial-gradient(circle at 30% 40%, rgba(255, 250, 240, 0.5) 0%, transparent 40%),
+          radial-gradient(circle at 70% 60%, rgba(245, 240, 232, 0.3) 0%, transparent 50%)`
       };
     } else if (hour >= 18 && hour < 21) {
-      // Evening: Warm sunset
+      // Evening: Rich burgundy and amber (like fine wine)
       return {
-        background: 'linear-gradient(135deg, #fd79a8 0%, #fdcb6e 30%, #e17055 60%, #6c5ce7 100%)',
+        background: 'linear-gradient(135deg, #f4e6d7 0%, #e8c5a0 30%, #d4a574 60%, #b8865a 100%)',
         backgroundImage: `
-          radial-gradient(circle at 20% 60%, rgba(255, 121, 168, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(253, 203, 110, 0.4) 0%, transparent 60%),
-          url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Ccircle cx='15' cy='15' r='2'/%3E%3Ccircle cx='45' cy='45' r='1'/%3E%3Ccircle cx='35' cy='15' r='1'/%3E%3Ccircle cx='15' cy='35' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          radial-gradient(circle at 20% 60%, rgba(212, 165, 116, 0.3) 0%, transparent 50%),
+          radial-gradient(circle at 80% 30%, rgba(244, 230, 215, 0.4) 0%, transparent 60%)`
       };
     } else {
-      // Night: Deep and starry
+      // Night: Deep navy and silver (like moonlight on marble)
       return {
-        background: 'linear-gradient(135deg, #2d3436 0%, #00b894 30%, #00396f 60%, #0c0c54 100%)',
+        background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 30%, #4a6741 60%, #5d6d5b 100%)',
         backgroundImage: `
-          radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 30%),
-          radial-gradient(circle at 60% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 25%),
-          radial-gradient(circle at 80% 60%, rgba(255, 255, 255, 0.06) 0%, transparent 20%),
-          radial-gradient(circle at 30% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 25%),
-          url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.2'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3Ccircle cx='80' cy='30' r='1'/%3E%3Ccircle cx='30' cy='60' r='1'/%3E%3Ccircle cx='70' cy='80' r='1'/%3E%3Ccircle cx='50' cy='15' r='0.5'/%3E%3Ccircle cx='90' cy='70' r='0.5'/%3E%3Ccircle cx='15' cy='85' r='0.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.05) 0%, transparent 40%),
+          radial-gradient(circle at 85% 75%, rgba(255, 255, 255, 0.03) 0%, transparent 30%),
+          radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 25%)`
       };
     }
   };
