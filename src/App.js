@@ -16,46 +16,31 @@ const App = () => {
     if (hour >= 4 && hour < 7) {
       // Dawn: Soft champagne and pearl tones
       return {
-        background: '#f7f1e3',
-        backgroundImage: '-webkit-linear-gradient(135deg, #f7f1e3 0%, #e8dcc0 30%, #d4c4a8 60%, #b8a082 100%)',
-        backgroundImage: 'linear-gradient(135deg, #f7f1e3 0%, #e8dcc0 30%, #d4c4a8 60%, #b8a082 100%)',
-        WebkitBackgroundSize: 'cover',
+        background: 'linear-gradient(135deg, #f7f1e3 0%, #e8dcc0 30%, #d4c4a8 60%, #b8a082 100%)',
         backgroundSize: 'cover'
       };
     } else if (hour >= 7 && hour < 12) {
       // Morning: Fresh cream and soft blue
       return {
-        background: '#f0f4f8',
-        backgroundImage: '-webkit-linear-gradient(135deg, #f0f4f8 0%, #e6f3ff 40%, #d1ecf1 70%, #b8dbd9 100%)',
-        backgroundImage: 'linear-gradient(135deg, #f0f4f8 0%, #e6f3ff 40%, #d1ecf1 70%, #b8dbd9 100%)',
-        WebkitBackgroundSize: 'cover',
+        background: 'linear-gradient(135deg, #f0f4f8 0%, #e6f3ff 40%, #d1ecf1 70%, #b8dbd9 100%)',
         backgroundSize: 'cover'
       };
     } else if (hour >= 12 && hour < 18) {
       // Afternoon: Warm ivory and pale gold
       return {
-        background: '#faf7f2',
-        backgroundImage: '-webkit-linear-gradient(135deg, #faf7f2 0%, #f5f0e8 30%, #ede4d3 60%, #e0d3bb 100%)',
-        backgroundImage: 'linear-gradient(135deg, #faf7f2 0%, #f5f0e8 30%, #ede4d3 60%, #e0d3bb 100%)',
-        WebkitBackgroundSize: 'cover',
+        background: 'linear-gradient(135deg, #faf7f2 0%, #f5f0e8 30%, #ede4d3 60%, #e0d3bb 100%)',
         backgroundSize: 'cover'
       };
     } else if (hour >= 18 && hour < 21) {
       // Evening: Rich burgundy and amber
       return {
-        background: '#f4e6d7',
-        backgroundImage: '-webkit-linear-gradient(135deg, #f4e6d7 0%, #e8c5a0 30%, #d4a574 60%, #b8865a 100%)',
-        backgroundImage: 'linear-gradient(135deg, #f4e6d7 0%, #e8c5a0 30%, #d4a574 60%, #b8865a 100%)',
-        WebkitBackgroundSize: 'cover',
+        background: 'linear-gradient(135deg, #f4e6d7 0%, #e8c5a0 30%, #d4a574 60%, #b8865a 100%)',
         backgroundSize: 'cover'
       };
     } else {
       // Night: Deep navy and silver
       return {
-        background: '#2c3e50',
-        backgroundImage: '-webkit-linear-gradient(135deg, #2c3e50 0%, #34495e 30%, #4a6741 60%, #5d6d5b 100%)',
-        backgroundImage: 'linear-gradient(135deg, #2c3e50 0%, #34495e 30%, #4a6741 60%, #5d6d5b 100%)',
-        WebkitBackgroundSize: 'cover',
+        background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 30%, #4a6741 60%, #5d6d5b 100%)',
         backgroundSize: 'cover'
       };
     }
@@ -74,7 +59,10 @@ const App = () => {
     };
   };
 
-  const { hour: hourAngle, minute: minuteAngle, second: secondAngle } = getHandAngles();
+  const handAngles = getHandAngles();
+  const hourAngle = handAngles.hour;
+  const minuteAngle = handAngles.minute;
+  const secondAngle = handAngles.second;
 
   // Initialize ambient audio
   const initializeAmbientAudio = useCallback(() => {
@@ -133,7 +121,7 @@ const App = () => {
     }
   }, [audioInitialized, initializeAmbientAudio, ambientAudio, soundEnabled, isChiming, startAmbientAudio]);
 
-  // Simple Web Audio API chime (iOS 10.3.3 compatible)
+  // Simple Web Audio API chime (iOS compatible)
   const playSimpleChime = useCallback(() => {
     try {
       // Use webkit prefix for older iOS versions
@@ -240,7 +228,7 @@ const App = () => {
     
     // Check if it's exactly 6am (06:00), noon (12:00), or midnight (00:00)
     if ((hours === 6 || hours === 12 || hours === 0) && minutes === 0 && seconds === 0) {
-      const currentChimeTime = `${hours}:${minutes}:${seconds}`;
+      const currentChimeTime = hours + ':' + minutes + ':' + seconds;
       
       // Only chime if we haven't chimed for this exact time yet
       if (lastChimeTime !== currentChimeTime) {
@@ -276,40 +264,39 @@ const App = () => {
     const hoursLeft = Math.floor(diff / (1000 * 60 * 60));
     const minutesLeft = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
-    return `${hoursLeft}h ${minutesLeft}m`;
+    return hoursLeft + 'h ' + minutesLeft + 'm';
+  };
+
+  const getSkyIndicator = () => {
+    const hour = currentTime.getHours();
+    if (hour >= 4 && hour < 7) return "🌅 Dawn";
+    if (hour >= 7 && hour < 12) return "☀️ Morning";
+    if (hour >= 12 && hour < 18) return "🌞 Afternoon";
+    if (hour >= 18 && hour < 21) return "🌇 Evening";
+    return "🌙 Night";
   };
 
   return (
     <div style={{
            ...getTimeBasedBackground(),
            minHeight: '100vh',
-           display: '-webkit-box',
-           display: '-webkit-flex',
            display: 'flex',
-           WebkitBoxAlign: 'center',
-           WebkitAlignItems: 'center',
            alignItems: 'center',
-           WebkitBoxPack: 'center',
-           WebkitJustifyContent: 'center',
            justifyContent: 'center',
            padding: '16px',
-           WebkitTransition: 'all 1s ease',
            transition: 'all 1s ease'
          }}
          onClick={handleUserInteraction}>
 
       <div style={{
              position: 'relative',
-             background: '-webkit-linear-gradient(145deg, rgba(254, 252, 232, 0.95), rgba(254, 243, 199, 0.95), rgba(254, 215, 170, 0.95))',
-             backgroundImage: '-webkit-linear-gradient(145deg, rgba(254, 252, 232, 0.95), rgba(254, 243, 199, 0.95), rgba(254, 215, 170, 0.95))',
+             background: 'linear-gradient(145deg, rgba(254, 252, 232, 0.95), rgba(254, 243, 199, 0.95), rgba(254, 215, 170, 0.95))',
              borderRadius: '20px',
              padding: '32px',
              border: '4px solid #ca8a04',
              maxWidth: '448px',
              width: '100%',
-             WebkitBoxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.6), 0 0 0 2px rgba(184, 134, 11, 0.3)',
              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.6), 0 0 0 2px rgba(184, 134, 11, 0.3)',
-             WebkitBackdropFilter: 'blur(4px)',
              backdropFilter: 'blur(4px)'
            }}>
         
@@ -386,7 +373,6 @@ const App = () => {
           position: 'absolute',
           bottom: '0px',
           left: '50%',
-          WebkitTransform: 'translateX(-50%)',
           transform: 'translateX(-50%)',
           width: '24px',
           height: '12px',
@@ -408,14 +394,7 @@ const App = () => {
           </p>
           {/* Sky indicator */}
           <div className="mt-2 text-xs text-amber-600 font-serif">
-            {(() => {
-              const hour = currentTime.getHours();
-              if (hour >= 4 && hour < 7) return "🌅 Dawn";
-              if (hour >= 7 && hour < 12) return "☀️ Morning";
-              if (hour >= 12 && hour < 18) return "🌞 Afternoon";
-              if (hour >= 18 && hour < 21) return "🌇 Evening";
-              return "🌙 Night";
-            })()}
+            {getSkyIndicator()}
           </div>
         </div>
 
@@ -437,15 +416,11 @@ const App = () => {
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-50 to-amber-100 border-8 border-yellow-700 shadow-2xl"
                  style={{
                    background: 'radial-gradient(circle at 30% 30%, #fefce8, #fef3c7, #fed7aa)',
-                   boxShadow: `
-                     inset 0 4px 8px rgba(0, 0, 0, 0.1),
-                     inset 0 -2px 4px rgba(255, 255, 255, 0.8),
-                     0 8px 32px rgba(0, 0, 0, 0.3)
-                   `
+                   boxShadow: 'inset 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(255, 255, 255, 0.8), 0 8px 32px rgba(0, 0, 0, 0.3)'
                  }}>
               
               {/* Hour Markers */}
-              {[...Array(12)].map((_, i) => {
+              {[0,1,2,3,4,5,6,7,8,9,10,11].map((i) => {
                 const angle = i * 30;
                 const isMainHour = i % 3 === 0;
                 return (
@@ -457,30 +432,17 @@ const App = () => {
                       left: '50%',
                       top: isMainHour ? '8px' : '12px',
                       transformOrigin: '50% 120px',
-                      transform: `translateX(-50%) rotate(${angle}deg)`
+                      transform: 'translateX(-50%) rotate(' + angle + 'deg)'
                     }}
                   />
                 );
               })}
               
               {/* Roman Numerals */}
-              {['XII', 'III', 'VI', 'IX'].map((numeral, i) => {
-                const positions = [
-                  { top: '16px', left: '50%', transform: 'translateX(-50%)' }, // XII
-                  { top: '50%', right: '16px', transform: 'translateY(-50%)' }, // III
-                  { bottom: '16px', left: '50%', transform: 'translateX(-50%)' }, // VI
-                  { top: '50%', left: '16px', transform: 'translateY(-50%)' }  // IX
-                ];
-                return (
-                  <div
-                    key={i}
-                    className="absolute text-xl font-bold text-amber-900 font-serif"
-                    style={positions[i]}
-                  >
-                    {numeral}
-                  </div>
-                );
-              })}
+              <div className="absolute text-xl font-bold text-amber-900 font-serif" style={{top: '16px', left: '50%', transform: 'translateX(-50%)'}}>XII</div>
+              <div className="absolute text-xl font-bold text-amber-900 font-serif" style={{top: '50%', right: '16px', transform: 'translateY(-50%)'}}>III</div>
+              <div className="absolute text-xl font-bold text-amber-900 font-serif" style={{bottom: '16px', left: '50%', transform: 'translateX(-50%)'}}>VI</div>
+              <div className="absolute text-xl font-bold text-amber-900 font-serif" style={{top: '50%', left: '16px', transform: 'translateY(-50%)'}}>IX</div>
               
               {/* Clock Hands */}
               {/* Hour Hand */}
@@ -493,11 +455,8 @@ const App = () => {
                   height: '70px',
                   left: '50%',
                   bottom: '50%',
-                  WebkitTransformOrigin: '50% 100%',
                   transformOrigin: '50% 100%',
-                  WebkitTransform: `translateX(-50%) rotate(${hourAngle}deg)`,
-                  transform: `translateX(-50%) rotate(${hourAngle}deg)`,
-                  WebkitBoxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                  transform: 'translateX(-50%) rotate(' + hourAngle + 'deg)',
                   boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
                 }}
               />
@@ -512,11 +471,8 @@ const App = () => {
                   height: '90px',
                   left: '50%',
                   bottom: '50%',
-                  WebkitTransformOrigin: '50% 100%',
                   transformOrigin: '50% 100%',
-                  WebkitTransform: `translateX(-50%) rotate(${minuteAngle}deg)`,
-                  transform: `translateX(-50%) rotate(${minuteAngle}deg)`,
-                  WebkitBoxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                  transform: 'translateX(-50%) rotate(' + minuteAngle + 'deg)',
                   boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
                 }}
               />
@@ -531,13 +487,9 @@ const App = () => {
                   height: '100px',
                   left: '50%',
                   bottom: '50%',
-                  WebkitTransformOrigin: '50% 100%',
                   transformOrigin: '50% 100%',
-                  WebkitTransform: `translateX(-50%) rotate(${secondAngle}deg)`,
-                  transform: `translateX(-50%) rotate(${secondAngle}deg)`,
-                  WebkitTransition: 'transform 0.075s ease-out',
+                  transform: 'translateX(-50%) rotate(' + secondAngle + 'deg)',
                   transition: 'transform 0.075s ease-out',
-                  WebkitBoxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
                   boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
                 }}
               />
@@ -551,10 +503,8 @@ const App = () => {
                 borderRadius: '50%',
                 top: '50%',
                 left: '50%',
-                WebkitTransform: 'translate(-50%, -50%)',
                 transform: 'translate(-50%, -50%)',
                 border: '2px solid #78350f',
-                WebkitBoxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3)',
                 boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3)'
               }}
               />
@@ -576,13 +526,12 @@ const App = () => {
 
         {/* Chime Status with aristocratic flair */}
         <div className="text-center mb-6">
-          <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-500 border-2 font-serif ${
-            isChiming 
+          <div className={'inline-flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-500 border-2 font-serif ' + 
+            (isChiming 
               ? 'bg-yellow-200 text-amber-900 border-yellow-500 shadow-lg animate-pulse' 
               : isChimeTime()
                 ? 'bg-green-100 text-green-800 border-green-400 shadow-md'
-                : 'bg-amber-50 text-amber-700 border-amber-300'
-          }`}>
+                : 'bg-amber-50 text-amber-700 border-amber-300')}>
             {isChiming ? (
               <>
                 <BellRing className="w-6 h-6 animate-bounce" />
@@ -606,12 +555,10 @@ const App = () => {
         <div className="flex justify-center gap-4 mb-4">
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-serif transition-all duration-300 border-2 shadow-md ${
-              soundEnabled 
+            className={'flex items-center gap-2 px-5 py-3 rounded-xl font-serif transition-all duration-300 border-2 shadow-md ' + 
+              (soundEnabled 
                 ? 'bg-blue-50 text-blue-800 border-blue-300 hover:bg-blue-100' 
-                : 'bg-red-50 text-red-800 border-red-300 hover:bg-red-100'
-            }`}
-          >
+                : 'bg-red-50 text-red-800 border-red-300 hover:bg-red-100')}>
             {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
             <span className="text-sm font-medium">
               {soundEnabled ? 'Sonorous' : 'Silenced'}
@@ -631,7 +578,7 @@ const App = () => {
         {soundEnabled && (
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
-              <div className={`w-2 h-2 rounded-full ${ambientAudio && !isChiming && !ambientAudio.paused ? 'bg-green-400 animate-pulse' : 'bg-gray-300'}`}></div>
+              <div className={'w-2 h-2 rounded-full ' + (ambientAudio && !isChiming && !ambientAudio.paused ? 'bg-green-400 animate-pulse' : 'bg-gray-300')}></div>
               <span className="text-xs font-serif">
                 {!audioInitialized 
                   ? 'Click anywhere to enable ambient sounds' 
