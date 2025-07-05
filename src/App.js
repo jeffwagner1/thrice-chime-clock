@@ -249,23 +249,7 @@ const App = () => {
           </button>
         </div>
 
-        {/* Elegant Info Panel */}
-        <div className="mt-6 p-5 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl border border-yellow-300 shadow-inner">
-          <div className="text-amber-700 text-xs text-center font-serif leading-relaxed">
-            <p className="mb-2 flex items-center justify-center gap-2">
-              <span className="text-yellow-600">⏰</span>
-              <span>The clock sounds thrice daily: dawn, noon, and midnight</span>
-            </p>
-            <p className="mb-2 flex items-center justify-center gap-2">
-              <span className="text-yellow-600">🏰</span>
-              <span>Marking the gentleman's day at the Metropol</span>
-            </p>
-            <p className="flex items-center justify-center gap-2 text-amber-600">
-              <span className="text-yellow-600">🎵</span>
-              <span>Will use audio file if available, otherwise built-in chimes</span>
-            </p>
-          </div>
-        </div>
+
 
         {/* Signature flourish */}
         <div className="mt-4 text-center">
