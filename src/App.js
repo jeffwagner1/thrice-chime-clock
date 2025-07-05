@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Bell, BellRing, Volume2, VolumeX, Crown } from 'lucide-react';
 
 const App = () => {
@@ -7,35 +7,8 @@ const App = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [lastChimeTime, setLastChimeTime] = useState(null);
 
-  // Update time every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Check for chime times (6am, noon, and midnight)
-  useEffect(() => {
-    const hours = currentTime.getHours();
-    const minutes = currentTime.getMinutes();
-    const seconds = currentTime.getSeconds();
-    
-    // Check if it's exactly 6am (06:00), noon (12:00), or midnight (00:00)
-    if ((hours === 6 || hours === 12 || hours === 0) && minutes === 0 && seconds === 0) {
-      const currentChimeTime = `${hours}:${minutes}:${seconds}`;
-      
-      // Only chime if we haven't chimed for this exact time yet
-      if (lastChimeTime !== currentChimeTime) {
-        triggerChime();
-        setLastChimeTime(currentChimeTime);
-      }
-    }
-  }, [currentTime, lastChimeTime]);
-
   // Simple Web Audio API chime (no external dependencies)
-  const playSimpleChime = () => {
+  const playSimpleChime = useCallback(() => {
     try {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       
@@ -63,9 +36,9 @@ const App = () => {
     } catch (error) {
       console.log('Audio playback failed:', error);
     }
-  };
+  }, []);
 
-  const triggerChime = async () => {
+  const triggerChime = useCallback(async () => {
     setIsChiming(true);
     
     if (soundEnabled) {
@@ -90,7 +63,34 @@ const App = () => {
     setTimeout(() => {
       setIsChiming(false);
     }, 6000);
-  };
+  }, [soundEnabled, playSimpleChime]);
+
+  // Update time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Check for chime times (6am, noon, and midnight)
+  useEffect(() => {
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    const seconds = currentTime.getSeconds();
+    
+    // Check if it's exactly 6am (06:00), noon (12:00), or midnight (00:00)
+    if ((hours === 6 || hours === 12 || hours === 0) && minutes === 0 && seconds === 0) {
+      const currentChimeTime = `${hours}:${minutes}:${seconds}`;
+      
+      // Only chime if we haven't chimed for this exact time yet
+      if (lastChimeTime !== currentChimeTime) {
+        triggerChime();
+        setLastChimeTime(currentChimeTime);
+      }
+    }
+  }, [currentTime, lastChimeTime, triggerChime]);
 
   const formatTime = (date) => {
     return date.toLocaleTimeString('en-US', {
@@ -119,7 +119,6 @@ const App = () => {
   const getTimeUntilNextChime = () => {
     const now = new Date();
     const hours = now.getHours();
-    const minutes = now.getMinutes();
     
     let nextChime;
     if (hours < 6) {
