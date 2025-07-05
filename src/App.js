@@ -9,39 +9,54 @@ const App = () => {
   const [ambientAudio, setAmbientAudio] = useState(null);
   const [audioInitialized, setAudioInitialized] = useState(false);
 
-  // Get background style based on time of day - Option 1: Subtle & Elegant
+  // Get background style based on time of day - Universal iOS Compatibility  
   const getTimeBasedBackground = () => {
     const hour = currentTime.getHours();
     
     if (hour >= 4 && hour < 7) {
       // Dawn: Soft champagne and pearl tones
       return {
-        background: 'linear-gradient(135deg, #f7f1e3 0%, #e8dcc0 30%, #d4c4a8 60%, #b8a082 100%)',
-        backgroundAttachment: 'fixed'
+        background: '#f7f1e3',
+        backgroundImage: '-webkit-linear-gradient(135deg, #f7f1e3 0%, #e8dcc0 30%, #d4c4a8 60%, #b8a082 100%)',
+        backgroundImage: 'linear-gradient(135deg, #f7f1e3 0%, #e8dcc0 30%, #d4c4a8 60%, #b8a082 100%)',
+        WebkitBackgroundSize: 'cover',
+        backgroundSize: 'cover'
       };
     } else if (hour >= 7 && hour < 12) {
       // Morning: Fresh cream and soft blue
       return {
-        background: 'linear-gradient(135deg, #f0f4f8 0%, #e6f3ff 40%, #d1ecf1 70%, #b8dbd9 100%)',
-        backgroundAttachment: 'fixed'
+        background: '#f0f4f8',
+        backgroundImage: '-webkit-linear-gradient(135deg, #f0f4f8 0%, #e6f3ff 40%, #d1ecf1 70%, #b8dbd9 100%)',
+        backgroundImage: 'linear-gradient(135deg, #f0f4f8 0%, #e6f3ff 40%, #d1ecf1 70%, #b8dbd9 100%)',
+        WebkitBackgroundSize: 'cover',
+        backgroundSize: 'cover'
       };
     } else if (hour >= 12 && hour < 18) {
       // Afternoon: Warm ivory and pale gold
       return {
-        background: 'linear-gradient(135deg, #faf7f2 0%, #f5f0e8 30%, #ede4d3 60%, #e0d3bb 100%)',
-        backgroundAttachment: 'fixed'
+        background: '#faf7f2',
+        backgroundImage: '-webkit-linear-gradient(135deg, #faf7f2 0%, #f5f0e8 30%, #ede4d3 60%, #e0d3bb 100%)',
+        backgroundImage: 'linear-gradient(135deg, #faf7f2 0%, #f5f0e8 30%, #ede4d3 60%, #e0d3bb 100%)',
+        WebkitBackgroundSize: 'cover',
+        backgroundSize: 'cover'
       };
     } else if (hour >= 18 && hour < 21) {
-      // Evening: Rich burgundy and amber (like fine wine)
+      // Evening: Rich burgundy and amber
       return {
-        background: 'linear-gradient(135deg, #f4e6d7 0%, #e8c5a0 30%, #d4a574 60%, #b8865a 100%)',
-        backgroundAttachment: 'fixed'
+        background: '#f4e6d7',
+        backgroundImage: '-webkit-linear-gradient(135deg, #f4e6d7 0%, #e8c5a0 30%, #d4a574 60%, #b8865a 100%)',
+        backgroundImage: 'linear-gradient(135deg, #f4e6d7 0%, #e8c5a0 30%, #d4a574 60%, #b8865a 100%)',
+        WebkitBackgroundSize: 'cover',
+        backgroundSize: 'cover'
       };
     } else {
-      // Night: Deep navy and silver (like moonlight on marble)
+      // Night: Deep navy and silver
       return {
-        background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 30%, #4a6741 60%, #5d6d5b 100%)',
-        backgroundAttachment: 'fixed'
+        background: '#2c3e50',
+        backgroundImage: '-webkit-linear-gradient(135deg, #2c3e50 0%, #34495e 30%, #4a6741 60%, #5d6d5b 100%)',
+        backgroundImage: 'linear-gradient(135deg, #2c3e50 0%, #34495e 30%, #4a6741 60%, #5d6d5b 100%)',
+        WebkitBackgroundSize: 'cover',
+        backgroundSize: 'cover'
       };
     }
   };
@@ -118,15 +133,22 @@ const App = () => {
     }
   }, [audioInitialized, initializeAmbientAudio, ambientAudio, soundEnabled, isChiming, startAmbientAudio]);
 
-  // Simple Web Audio API chime (no external dependencies)
+  // Simple Web Audio API chime (iOS 10.3.3 compatible)
   const playSimpleChime = useCallback(() => {
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      // Use webkit prefix for older iOS versions
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) {
+        console.log('Web Audio API not supported');
+        return;
+      }
+      
+      const audioContext = new AudioContext();
       
       // Westminster chimes frequencies
       const notes = [659.25, 523.25, 587.33, 392.00]; // E5, C5, D5, G4
       
-      notes.forEach((frequency, index) => {
+      notes.forEach(function(frequency, index) {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         
@@ -258,36 +280,121 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 transition-all duration-1000" 
-         style={{
+    <div style={{
            ...getTimeBasedBackground(),
-           minHeight: '100vh'
+           minHeight: '100vh',
+           display: '-webkit-box',
+           display: '-webkit-flex',
+           display: 'flex',
+           WebkitBoxAlign: 'center',
+           WebkitAlignItems: 'center',
+           alignItems: 'center',
+           WebkitBoxPack: 'center',
+           WebkitJustifyContent: 'center',
+           justifyContent: 'center',
+           padding: '16px',
+           WebkitTransition: 'all 1s ease',
+           transition: 'all 1s ease'
          }}
          onClick={handleUserInteraction}>
 
-      <div className="relative bg-gradient-to-b from-amber-50 to-cream-100 p-8 shadow-2xl border-4 border-yellow-600 max-w-md w-full backdrop-blur-sm"
-           style={{
-             background: 'linear-gradient(145deg, rgba(254, 252, 232, 0.95), rgba(254, 243, 199, 0.95), rgba(254, 215, 170, 0.95))',
-             borderRadius: '20px 20px 40px 40px',
-             clipPath: 'polygon(10% 0%, 90% 0%, 100% 15%, 100% 85%, 90% 100%, 10% 100%, 0% 85%, 0% 15%)',
-             boxShadow: `
-               0 25px 50px -12px rgba(0, 0, 0, 0.4),
-               inset 0 2px 4px rgba(255, 255, 255, 0.6),
-               0 0 0 2px rgba(184, 134, 11, 0.3),
-               inset 0 -4px 8px rgba(0, 0, 0, 0.1)
-             `
+      <div style={{
+             position: 'relative',
+             background: '-webkit-linear-gradient(145deg, rgba(254, 252, 232, 0.95), rgba(254, 243, 199, 0.95), rgba(254, 215, 170, 0.95))',
+             backgroundImage: '-webkit-linear-gradient(145deg, rgba(254, 252, 232, 0.95), rgba(254, 243, 199, 0.95), rgba(254, 215, 170, 0.95))',
+             borderRadius: '20px',
+             padding: '32px',
+             border: '4px solid #ca8a04',
+             maxWidth: '448px',
+             width: '100%',
+             WebkitBoxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.6), 0 0 0 2px rgba(184, 134, 11, 0.3)',
+             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.6), 0 0 0 2px rgba(184, 134, 11, 0.3)',
+             WebkitBackdropFilter: 'blur(4px)',
+             backdropFilter: 'blur(4px)'
            }}>
         
         {/* Ornate decorative elements for mantel clock */}
-        <div className="absolute top-4 left-4 w-6 h-6 border-l-3 border-t-3 border-yellow-700 opacity-60 rounded-tl-lg"></div>
-        <div className="absolute top-4 right-4 w-6 h-6 border-r-3 border-t-3 border-yellow-700 opacity-60 rounded-tr-lg"></div>
-        <div className="absolute bottom-6 left-6 w-8 h-8 border-l-4 border-b-4 border-yellow-600 opacity-40 rounded-bl-xl"></div>
-        <div className="absolute bottom-6 right-6 w-8 h-8 border-r-4 border-b-4 border-yellow-600 opacity-40 rounded-br-xl"></div>
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          width: '24px',
+          height: '24px',
+          borderLeft: '3px solid #b45309',
+          borderTop: '3px solid #b45309',
+          opacity: 0.6,
+          borderTopLeftRadius: '8px'
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          right: '16px',
+          width: '24px',
+          height: '24px',
+          borderRight: '3px solid #b45309',
+          borderTop: '3px solid #b45309',
+          opacity: 0.6,
+          borderTopRightRadius: '8px'
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '24px',
+          left: '24px',
+          width: '32px',
+          height: '32px',
+          borderLeft: '4px solid #ca8a04',
+          borderBottom: '4px solid #ca8a04',
+          opacity: 0.4,
+          borderBottomLeftRadius: '12px'
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '24px',
+          right: '24px',
+          width: '32px',
+          height: '32px',
+          borderRight: '4px solid #ca8a04',
+          borderBottom: '4px solid #ca8a04',
+          opacity: 0.4,
+          borderBottomRightRadius: '12px'
+        }}></div>
         
         {/* Mantel clock feet */}
-        <div className="absolute bottom-0 left-8 w-4 h-3 bg-yellow-700 rounded-t-lg opacity-70"></div>
-        <div className="absolute bottom-0 right-8 w-4 h-3 bg-yellow-700 rounded-t-lg opacity-70"></div>
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-3 bg-yellow-700 rounded-t-lg opacity-70"></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '0px',
+          left: '32px',
+          width: '16px',
+          height: '12px',
+          background: '#b45309',
+          borderTopLeftRadius: '8px',
+          borderTopRightRadius: '8px',
+          opacity: 0.7
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '0px',
+          right: '32px',
+          width: '16px',
+          height: '12px',
+          background: '#b45309',
+          borderTopLeftRadius: '8px',
+          borderTopRightRadius: '8px',
+          opacity: 0.7
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '0px',
+          left: '50%',
+          WebkitTransform: 'translateX(-50%)',
+          transform: 'translateX(-50%)',
+          width: '24px',
+          height: '12px',
+          background: '#b45309',
+          borderTopLeftRadius: '8px',
+          borderTopRightRadius: '8px',
+          opacity: 0.7
+        }}></div>
 
         {/* Header with aristocratic styling */}
         <div className="text-center mb-6 relative">
@@ -378,51 +485,78 @@ const App = () => {
               {/* Clock Hands */}
               {/* Hour Hand */}
               <div
-                className="absolute bg-amber-900 rounded-full origin-bottom"
                 style={{
+                  position: 'absolute',
+                  background: '#78350f',
+                  borderRadius: '3px',
                   width: '6px',
                   height: '70px',
                   left: '50%',
                   bottom: '50%',
+                  WebkitTransformOrigin: '50% 100%',
                   transformOrigin: '50% 100%',
+                  WebkitTransform: `translateX(-50%) rotate(${hourAngle}deg)`,
                   transform: `translateX(-50%) rotate(${hourAngle}deg)`,
+                  WebkitBoxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
                   boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
                 }}
               />
               
               {/* Minute Hand */}
               <div
-                className="absolute bg-amber-800 rounded-full origin-bottom"
                 style={{
+                  position: 'absolute',
+                  background: '#92400e',
+                  borderRadius: '2px',
                   width: '4px',
                   height: '90px',
                   left: '50%',
                   bottom: '50%',
+                  WebkitTransformOrigin: '50% 100%',
                   transformOrigin: '50% 100%',
+                  WebkitTransform: `translateX(-50%) rotate(${minuteAngle}deg)`,
                   transform: `translateX(-50%) rotate(${minuteAngle}deg)`,
+                  WebkitBoxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
                   boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
                 }}
               />
               
               {/* Second Hand */}
               <div
-                className="absolute bg-red-600 rounded-full origin-bottom transition-transform duration-75"
                 style={{
+                  position: 'absolute',
+                  background: '#dc2626',
+                  borderRadius: '1px',
                   width: '2px',
                   height: '100px',
                   left: '50%',
                   bottom: '50%',
+                  WebkitTransformOrigin: '50% 100%',
                   transformOrigin: '50% 100%',
+                  WebkitTransform: `translateX(-50%) rotate(${secondAngle}deg)`,
                   transform: `translateX(-50%) rotate(${secondAngle}deg)`,
+                  WebkitTransition: 'transform 0.075s ease-out',
+                  transition: 'transform 0.075s ease-out',
+                  WebkitBoxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
                   boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
                 }}
               />
               
               {/* Center Hub */}
-              <div className="absolute w-4 h-4 bg-yellow-700 rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border-2 border-amber-900"
-                   style={{
-                     boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3)'
-                   }}
+              <div style={{
+                position: 'absolute',
+                width: '16px',
+                height: '16px',
+                background: '#b45309',
+                borderRadius: '50%',
+                top: '50%',
+                left: '50%',
+                WebkitTransform: 'translate(-50%, -50%)',
+                transform: 'translate(-50%, -50%)',
+                border: '2px solid #78350f',
+                WebkitBoxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3)',
+                boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3)'
+              }}
               />
             </div>
           </div>
