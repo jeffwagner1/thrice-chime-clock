@@ -17,42 +17,31 @@ const App = () => {
       // Dawn: Soft champagne and pearl tones
       return {
         background: 'linear-gradient(135deg, #f7f1e3 0%, #e8dcc0 30%, #d4c4a8 60%, #b8a082 100%)',
-        backgroundImage: `
-          radial-gradient(circle at 25% 25%, rgba(255, 245, 220, 0.3) 0%, transparent 60%),
-          radial-gradient(circle at 75% 75%, rgba(245, 222, 179, 0.2) 0%, transparent 50%)`
+        backgroundAttachment: 'fixed'
       };
     } else if (hour >= 7 && hour < 12) {
       // Morning: Fresh cream and soft blue
       return {
         background: 'linear-gradient(135deg, #f0f4f8 0%, #e6f3ff 40%, #d1ecf1 70%, #b8dbd9 100%)',
-        backgroundImage: `
-          radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(230, 243, 255, 0.3) 0%, transparent 60%)`
+        backgroundAttachment: 'fixed'
       };
     } else if (hour >= 12 && hour < 18) {
       // Afternoon: Warm ivory and pale gold
       return {
         background: 'linear-gradient(135deg, #faf7f2 0%, #f5f0e8 30%, #ede4d3 60%, #e0d3bb 100%)',
-        backgroundImage: `
-          radial-gradient(circle at 30% 40%, rgba(255, 250, 240, 0.5) 0%, transparent 40%),
-          radial-gradient(circle at 70% 60%, rgba(245, 240, 232, 0.3) 0%, transparent 50%)`
+        backgroundAttachment: 'fixed'
       };
     } else if (hour >= 18 && hour < 21) {
       // Evening: Rich burgundy and amber (like fine wine)
       return {
         background: 'linear-gradient(135deg, #f4e6d7 0%, #e8c5a0 30%, #d4a574 60%, #b8865a 100%)',
-        backgroundImage: `
-          radial-gradient(circle at 20% 60%, rgba(212, 165, 116, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 30%, rgba(244, 230, 215, 0.4) 0%, transparent 60%)`
+        backgroundAttachment: 'fixed'
       };
     } else {
       // Night: Deep navy and silver (like moonlight on marble)
       return {
         background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 30%, #4a6741 60%, #5d6d5b 100%)',
-        backgroundImage: `
-          radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.05) 0%, transparent 40%),
-          radial-gradient(circle at 85% 75%, rgba(255, 255, 255, 0.03) 0%, transparent 30%),
-          radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 25%)`
+        backgroundAttachment: 'fixed'
       };
     }
   };
@@ -270,7 +259,10 @@ const App = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 transition-all duration-1000" 
-         style={getTimeBasedBackground()}
+         style={{
+           ...getTimeBasedBackground(),
+           minHeight: '100vh'
+         }}
          onClick={handleUserInteraction}>
 
       <div className="relative bg-gradient-to-b from-amber-50 to-cream-100 p-8 shadow-2xl border-4 border-yellow-600 max-w-md w-full backdrop-blur-sm"
@@ -307,6 +299,17 @@ const App = () => {
           <p className="text-amber-700 text-xs italic font-serif">
             "Time marks the rhythm of a gentleman's day"
           </p>
+          {/* Sky indicator */}
+          <div className="mt-2 text-xs text-amber-600 font-serif">
+            {(() => {
+              const hour = currentTime.getHours();
+              if (hour >= 4 && hour < 7) return "🌅 Dawn";
+              if (hour >= 7 && hour < 12) return "☀️ Morning";
+              if (hour >= 12 && hour < 18) return "🌞 Afternoon";
+              if (hour >= 18 && hour < 21) return "🌇 Evening";
+              return "🌙 Night";
+            })()}
+          </div>
         </div>
 
         {/* Main Analog Clock Display */}
